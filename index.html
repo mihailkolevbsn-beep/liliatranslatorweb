@@ -54,33 +54,32 @@
       padding: 12px;
       resize: vertical;
       box-sizing: border-box;
-      font-size: 1.5rem; /* reduced by 50% from 3rem */
+      font-size: 1.5rem;
     }
     .row {
       display: flex;
-      gap: -750px;
-      flex-wrap: wrap;
+      gap: 150px; /* distance between voice & translate buttons */
+      justify-content: center;
       margin-top: 8px;
     }
-    .row button { flex: 1; }
     .row button img {
-      width: 50px; /* 60% smaller buttons now use correct images */
+      width: 50px;
       height: 50px;
     }
     .footer {
       display: flex;
-      gap: 150px;
+      gap: 150px; /* distance between back & switch buttons */
       margin-top: 16px;
       justify-content: center;
     }
     .footer button img {
-      width: 50px; /* 150% of 48px */
+      width: 50px;
       height: 50px;
     }
     .hidden { display: none; }
     .lang-btn img {
-      width: 126px;
-      height: 84px;
+      width: 192px;
+      height: 128px;
       object-fit: cover;
       border-radius: 12px;
     }
@@ -89,7 +88,7 @@
 <body>
 
 <div class="card" id="languageMenu">
-  <h1>PLEASE SELECT YOUR LANGUAGE</h1>
+  <h1>Select translation language</h1>
   <div class="lang-grid" id="langButtons"></div>
 </div>
 
@@ -97,7 +96,7 @@
   <h1 id="translatorTitle"></h1>
 
   <label>Input</label>
-  <textarea id="inputText" placeholder="Enter text or use voice input..."></textarea><br><br>
+  <textarea id="inputText" placeholder="Enter text or use voice input..."></textarea>
   <div class="row">
     <button onclick="startVoice()"><img src="flags/mic.png" alt="Voice"></button>
     <button onclick="translateText()"><img src="flags/right.png" alt="Translate"></button>
@@ -105,10 +104,10 @@
 
   <label style="margin-top:16px;display:block">Output</label>
   <textarea id="outputText" readonly placeholder="Translated text will appear here..."></textarea>
-<br><br>
+
   <div class="footer">
-    <button onclick="goBack()"><img src="flags/back.png" alt="Back"></button>
-    <button onclick="switchLanguages()"><img src="flags/switch2.png" alt="Switch"></button>
+    <button onclick="goBack()"><img src="flags/left.png" alt="Back"></button>
+    <button onclick="switchLanguages()"><img src="flags/switch.png" alt="Switch"></button>
   </div>
 </div>
 
@@ -162,6 +161,8 @@ function goBack() {
 
 function switchLanguages() {
   [sourceLang, targetLang] = [targetLang, sourceLang];
+  document.getElementById('inputText').value = '';
+  document.getElementById('outputText').value = '';
   title.textContent = sourceLang === 'bg'
     ? `Bulgarian → ${getLangName(targetLang)}`
     : `${getLangName(sourceLang)} → Bulgarian`;
