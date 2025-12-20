@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bulgarian Translator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #111, #1b1b1b);
+      color: #eee;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #1f1f1f;
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 720px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.4);
+      box-sizing: border-box;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.6rem;
+    }
+    .lang-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 20px;
+    }
+    button {
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: transform .1s ease;
+    }
+    button:active { transform: scale(.95); }
+    textarea {
+      width: calc(100%);
+      min-height: 120px;
+      background: #141414;
+      color: #eee;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 12px;
+      resize: vertical;
+      box-sizing: border-box;
+      font-size: 1.5rem; /* reduced by 50% from 3rem */
+    }
+    .row {
+      display: flex;
+      gap: -750px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .row button { flex: 1; }
+    .row button img {
+      width: 50px; /* 60% smaller buttons now use correct images */
+      height: 50px;
+    }
+    .footer {
+      display: flex;
+      gap: 150px;
+      margin-top: 16px;
+      justify-content: center;
+    }
+    .footer button img {
+      width: 50px; /* 150% of 48px */
+      height: 50px;
+    }
+    .hidden { display: none; }
+    .lang-btn img {
+      width: 126px;
+      height: 84px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card" id="languageMenu">
+  <h1>PLEASE SELECT YOUR LANGUAGE</h1>
+  <div class="lang-grid" id="langButtons"></div>
+</div>
+
+<div class="card hidden" id="translator">
+  <h1 id="translatorTitle"></h1>
+
+  <label>Input</label>
+  <textarea id="inputText" placeholder="Enter text or use voice input..."></textarea><br><br>
+  <div class="row">
+    <button onclick="startVoice()"><img src="flags/mic.png" alt="Voice"></button>
+    <button onclick="translateText()"><img src="flags/right.png" alt="Translate"></button>
+  </div>
+
+  <label style="margin-top:16px;display:block">Output</label>
+  <textarea id="outputText" readonly placeholder="Translated text will appear here..."></textarea>
+<br><br>
+  <div class="footer">
+    <button onclick="goBack()"><img src="flags/back.png" alt="Back"></button>
+    <button onclick="switchLanguages()"><img src="flags/switch2.png" alt="Switch"></button>
+  </div>
+</div>
+
+<script>
+const languages = [
+  { code: 'en', img: 'flags/en.png' },
+  { code: 'de', img: 'flags/de.png' },
+  { code: 'ro', img: 'flags/ro.png' },
+  { code: 'uk', img: 'flags/uk.png' },
+  { code: 'ru', img: 'flags/ru.png' },
+  { code: 'pl', img: 'flags/pl.png' },
+  { code: 'cs', img: 'flags/cs.png' },
+  { code: 'tr', img: 'flags/tr.png' },
+  { code: 'it', img: 'flags/it.png' },
+  { code: 'he', img: 'flags/he.png' }
+];
+
+let sourceLang = 'bg';
+let targetLang = null;
+
+const menu = document.getElementById('languageMenu');
+const translator = document.getElementById('translator');
+const langButtons = document.getElementById('langButtons');
+const title = document.getElementById('translatorTitle');
+
+languages.forEach(lang => {
+  const btn = document.createElement('button');
+  btn.classList.add('lang-btn');
+  const img = document.createElement('img');
+  img.src = lang.img;
+  img.alt = lang.code;
+  btn.appendChild(img);
+  btn.onclick = () => openTranslator(lang.code, lang.code.toUpperCase());
+  langButtons.appendChild(btn);
+});
+
+function openTranslator(code, name) {
+  targetLang = code;
+  title.textContent = `Bulgarian → ${name}`;
+  menu.classList.add('hidden');
+  translator.classList.remove('hidden');
+}
+
+function goBack() {
+  translator.classList.add('hidden');
+  menu.classList.remove('hidden');
+  document.getElementById('inputText').value = '';
+  document.getElementById('outputText').value = '';
+  sourceLang = 'bg';
+}
+
+function switchLanguages() {
+  [sourceLang, targetLang] = [targetLang, sourceLang];
+  title.textContent = sourceLang === 'bg'
+    ? `Bulgarian → ${getLangName(targetLang)}`
+    : `${getLangName(sourceLang)} → Bulgarian`;
+}
+
+function getLangName(code) {
+  if (code === 'bg') return 'Bulgarian';
+  return code.toUpperCase();
+}
+
+async function translateText() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) return;
+
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    document.getElementById('outputText').value = data[0].map(item => item[0]).join('');
+  } catch (e) {
+    document.getElementById('outputText').value = 'Translation service unavailable.';
+  }
+}
+
+function startVoice() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert('Speech recognition not supported in this browser.');
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.lang = sourceLang === 'bg' ? 'bg-BG' : sourceLang;
+  recognition.start();
+
+  recognition.onresult = event => {
+    document.getElementById('inputText').value += event.results[0][0].transcript;
+  };
+}
+</script>
+
+</body>
+</html>
