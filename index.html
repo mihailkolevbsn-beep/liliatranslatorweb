@@ -78,10 +78,34 @@
     }
     .hidden { display: none; }
     .lang-btn img {
-      width: 125px;
-      height: 80px;
+      width: 192px;
+      height: 128px;
       object-fit: cover;
       border-radius: 12px;
+    }
+    .listening-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      height: 14px;
+      background: #333;
+      border-radius: 10px;
+      overflow: hidden;
+      display: none;
+      box-shadow: 0 0 12px rgba(0,0,0,.6);
+    }
+    .listening-bar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, #4caf50, #81c784, #4caf50);
+      animation: listeningPulse 1.2s linear infinite;
+    }
+    @keyframes listeningPulse {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
     }
   </style>
 </head>
@@ -98,7 +122,7 @@
   <label>Input</label>
   <textarea id="inputText" placeholder="Enter text or use voice input..."></textarea>
   <div class="row">
-    <button onclick="startVoice()"><img src="flags/mic2.png" alt="Voice"></button>
+    <button onclick="startVoice()"><img src="flags/mic.png" alt="Voice"></button>
     <button onclick="translateText()"><img src="flags/right.png" alt="Translate"></button>
   </div>
 
@@ -113,7 +137,7 @@
 
 <script>
 const languages = [
-  { code: 'en', img: 'flags/unk.png' },
+  { code: 'en', img: 'flags/en.png' },
   { code: 'de', img: 'flags/de.png' },
   { code: 'ro', img: 'flags/ro.png' },
   { code: 'uk', img: 'flags/uk.png' },
@@ -193,19 +217,45 @@ function startVoice() {
     return;
   }
 
+  const bar = document.getElementById('listeningBar');
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
   recognition.lang = sourceLang === 'bg' ? 'bg-BG' : sourceLang;
-  recognition.start();
+  recognition.continuous = true;
+  recognition.interimResults = false;
+
+  let silenceTimer = null;
+
+  // show listening indicator after delay
+  setTimeout(() => {
+    bar.style.display = 'block';
+    recognition.start();
+  }, 5000);
 
   recognition.onresult = event => {
-    document.getElementById('inputText').value += event.results[0][0].transcript;
+    const transcript = event.results[event.results.length - 1][0].transcript;
+    document.getElementById('inputText').value += transcript;
+
+    clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(() => {
+      recognition.stop();
+    }, 4000);
+  };
+
+  recognition.onend = () => {
+    bar.style.display = 'none';
+    clearTimeout(silenceTimer);
+  };
+
+  recognition.onerror = () => {
+    bar.style.display = 'none';
+    clearTimeout(silenceTimer);
+    recognition.stop();
   };
 }
 </script>
 
+<div class="listening-bar" id="listeningBar"></div>
+
 </body>
 </html>
-
-
-
