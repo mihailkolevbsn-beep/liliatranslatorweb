@@ -170,7 +170,7 @@ languages.forEach(lang => {
 
 function openTranslator(code, name) {
   targetLang = code;
-  title.textContent = `Bulgarian → ${name}`;
+  title.textContent = `BG → ${name}`;
   menu.classList.add('hidden');
   translator.classList.remove('hidden');
 }
@@ -212,6 +212,9 @@ async function translateText() {
 }
 
 function startVoice() {
+    document.getElementById('inputText').value = '';
+    document.getElementById('outputText').value = '';
+  
   if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
     alert('Speech recognition not supported in this browser.');
     return;
@@ -259,6 +262,7 @@ function startVoice() {
 
 </body>
 </html>
+
 
 
 
